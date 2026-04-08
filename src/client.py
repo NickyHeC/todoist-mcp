@@ -1,22 +1,28 @@
-"""Test client for the API Key MCP server.
+# Copyright (c) 2026 Dedalus Labs, Inc. and its contributors
+# SPDX-License-Identifier: MIT
+
+"""Test client for the Todoist MCP server.
 
 Two modes:
 
 1. Test connection only (no server needed):
-       python -m src.client --test-connection
+       uv run src/_client.py --test-connection
 
    Uses ConnectionTester to verify your Connection config and credentials
-   work against the target platform. Edit the test path below to match a
-   lightweight endpoint from your platform (e.g. "/user" for GitHub).
+   work against the Todoist API. You need a valid access token in .env
+   for local testing — obtain one from the Todoist developer console or
+   OAuth playground. When deployed, DAuth handles the OAuth flow automatically.
 
 2. Test tools (server must be running):
-       python -m src.main        # in one terminal
-       python -m src.client      # in another
+       uv run src/main.py        # in one terminal
+       uv run src/_client.py     # in another
 """
 
 import asyncio
 import sys
+
 from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -24,14 +30,11 @@ load_dotenv()
 async def test_connection() -> None:
     """Verify the DAuth connection config and credentials without a running server."""
     from dedalus_mcp.testing import ConnectionTester, TestRequest
-    from src.main import platform_connection
 
-    tester = ConnectionTester.from_env(platform_connection)
+    from todoist.config import todoist
 
-    # Replace "/user" with a lightweight endpoint from your target platform:
-    #   GitHub:  "/user"
-    #   Slack:   "/api/auth.test"
-    #   Discord: "/users/@me"
+    tester = ConnectionTester.from_env(todoist)
+
     response = await tester.request(TestRequest(path="/user"))
 
     if response.success:
@@ -51,11 +54,11 @@ async def test_tools() -> None:
     tools = await client.list_tools()
     print("Available tools:", [t.name for t in tools.tools])
 
-    result = await client.call_tool("example_tool", {"input_text": "hello", "multiplier": 3})
-    print("example_tool result:", result.content[0].text)
+    result = await client.call_tool("todoist_get_user_info", {})
+    print("todoist_get_user_info result:", result.content[0].text)
 
-    result = await client.call_tool("fetch_resource", {"resource_id": "abc-123"})
-    print("fetch_resource result:", result.content[0].text)
+    result = await client.call_tool("todoist_get_projects", {"limit": 5})
+    print("todoist_get_projects result:", result.content[0].text)
 
     await client.close()
 
