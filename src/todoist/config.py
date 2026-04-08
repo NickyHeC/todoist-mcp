@@ -19,7 +19,7 @@ from dedalus_mcp.auth import Connection, SecretKeys
 
 
 todoist = Connection(
-    name="todoist-mcp",
+    name="todoist",
     secrets=SecretKeys(token="TODOIST_ACCESS_TOKEN"),  # noqa: S106
     base_url="https://api.todoist.com/api/v1",
     auth_header_format="Bearer {api_key}",
